@@ -35,17 +35,17 @@ public class EsmeTest {
 
 	
 	public static void main(String[] args) {
-		EsmeConnection esmeConnection = new EsmeConnection("localhost", 2775);
-		EsmeSession esmeSession = new EsmeSession(esmeConnection);
+		ClientConnection esmeConnection = new ClientConnection("localhost", 2775);
+		SessionContext esmeSession = new SessionContext(esmeConnection);
 
-		EsmeOperations esmeOperations = new EsmeOperationsImpl(esmeSession);
+		ClientSession esmeOperations = new SMPPSession(esmeSession);
 		
 		bind(esmeOperations, (event) -> System.out.printf("Handle Event: %s%n", event.getPDU().debugString()));
-		submit_SM(esmeOperations);
-		unBind(esmeOperations);
+		//submit_SM(esmeOperations);
+		//unBind(esmeOperations);
 	}
 
-	private static void bind(EsmeOperations esmeOperations, ServerPDUEventListener pduListener) {
+	private static void bind(ClientSession esmeOperations, ServerPDUEventListener pduListener) {
 		BindRequest bindRequest = new BindTransmitter();
 		BindResponse bindResponse = null;
 		try {
@@ -60,22 +60,22 @@ public class EsmeTest {
 		try {
 			bindResponse = esmeOperations.bind(bindRequest, pduListener);
 			System.out.printf("Bind Response : %s%n", bindResponse.debugString());
-		} catch (EsmeException e) {
+		} catch (ClientException e) {
 
 		}
 	}
 
 
-	private static void unBind(EsmeOperations esmeOperations) {
+	private static void unBind(ClientSession esmeOperations) {
 		try {
 			UnbindResp unbindResp = esmeOperations.unbind();
 			System.out.printf("Unbind Response : %s%n", unbindResp.debugString());
-		} catch (EsmeException e) {
+		} catch (ClientException e) {
 		}
 	}
 
 
-	private static void submit_SM(EsmeOperations esmeOperations) {
+	private static void submit_SM(ClientSession esmeOperations) {
 		SubmitSM sm = new SubmitSM();
 		// set values
 		try {
@@ -102,7 +102,7 @@ public class EsmeTest {
 		sm.assignSequenceNumber();
 		try {
 			esmeOperations.submit(sm);
-		} catch (EsmeException e) {
+		} catch (ClientException e) {
 			
 		}
 	}

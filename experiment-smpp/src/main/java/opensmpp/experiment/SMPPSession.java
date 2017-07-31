@@ -16,18 +16,22 @@ import org.smpp.pdu.SubmitSMResp;
 import org.smpp.pdu.UnbindResp;
 import org.smpp.pdu.ValueNotSetException;
 
-public class EsmeOperationsImpl implements EsmeOperations {
+public class SMPPSession extends AbstractClientSession {
 
-	private EsmeSession esmeSession;
 
-	public EsmeOperationsImpl(EsmeSession esmeSession) {
-		this.esmeSession = esmeSession;
+	private SessionContext sessionContext;
+
+	public SMPPSession(SessionContext sessionContext) {
+		this.sessionContext = sessionContext;
 	}
 
-	public BindResponse bind(BindRequest bindReq, ServerPDUEventListener pduListener) throws EsmeException {
+	public BindResponse bind(BindRequest bindReq, ServerPDUEventListener pduListener) throws ClientException {
 		BindResponse bindResponse = null;
 		try {
-			bindResponse = esmeSession.bind(bindReq, pduListener);
+			bindResponse = sessionContext.bind(bindReq, pduListener);
+			
+			enquireLinkSender = new EnquireLinkSender();
+			enquireLinkSender.start();
 		} catch (ValueNotSetException e) {
 			
 		} catch (TimeoutException e) {
@@ -42,10 +46,10 @@ public class EsmeOperationsImpl implements EsmeOperations {
 		return bindResponse;
 	}
 
-	public UnbindResp unbind() throws EsmeException {
+	public UnbindResp unbind() throws ClientException {
 		UnbindResp unbindResp = null;
 		try {
-			unbindResp = esmeSession.unbind();
+			unbindResp = sessionContext.unbind();
 		} catch (ValueNotSetException e) {
 			
 		} catch (TimeoutException e) {
@@ -59,10 +63,10 @@ public class EsmeOperationsImpl implements EsmeOperations {
 		return unbindResp;
 	}
 
-	public SubmitSMResp submit(SubmitSM request) throws EsmeException {
+	public SubmitSMResp submit(SubmitSM request) throws ClientException {
 		SubmitSMResp submitSMResp = null;
 		try {
-			submitSMResp = esmeSession.submit(request);
+			submitSMResp = sessionContext.submit(request);
 		} catch (ValueNotSetException e) {
 			
 		} catch (TimeoutException e) {
@@ -77,10 +81,10 @@ public class EsmeOperationsImpl implements EsmeOperations {
 		return submitSMResp;
 	}
 
-	public DeliverSMResp deliver(DeliverSM request) throws EsmeException {
+	public DeliverSMResp deliver(DeliverSM request) throws ClientException {
 		DeliverSMResp deliverSMResp = null;
 		try {
-			deliverSMResp = esmeSession.deliver(request);
+			deliverSMResp = sessionContext.deliver(request);
 		} catch (ValueNotSetException e) {
 			
 		} catch (TimeoutException e) {
@@ -95,10 +99,10 @@ public class EsmeOperationsImpl implements EsmeOperations {
 		return deliverSMResp;
 	}
 
-	public EnquireLinkResp enquireLink() throws EsmeException {
+	public EnquireLinkResp enquireLink() throws ClientException {
 		EnquireLinkResp enquireLinkResp = null;
 		try {
-			enquireLinkResp = esmeSession.enquireLink();
+			enquireLinkResp = sessionContext.enquireLink();
 		} catch (ValueNotSetException e) {
 			
 		} catch (TimeoutException e) {
@@ -111,5 +115,10 @@ public class EsmeOperationsImpl implements EsmeOperations {
 			
 		}
 		return enquireLinkResp;
+	}
+
+	@Override
+	protected SessionContext sessionContext() {
+		return sessionContext;
 	}
 }
