@@ -1,22 +1,22 @@
 package opensmpp.experiment.multithreaded;
 
+import java.util.Objects;
+
 import org.smpp.Session;
 import org.smpp.TCPIPConnection;
 import org.smpp.pdu.BindRequest;
 import org.smpp.pdu.BindTransmitter;
+import org.smpp.pdu.Response;
 import org.smpp.pdu.SubmitSM;
 
-public class EemeClient {
+public class EsmeClient {
 	
 	private TCPIPConnection connection;
 	private Session session;
 	private RequestProcessor requestProcessor;
 	private EsmeQueueOperations esmeQueueOperations;
+	boolean canProcess = false;
 	
-	public static void main(String[] args) {
-		new EemeClient().init();
-	}
-
 	public void init() {
 		connection = new TCPIPConnection("localhost", 2775);
 		session = new Session(connection);
@@ -26,20 +26,32 @@ public class EemeClient {
 		BindRequest bind = new BindTransmitter();
 		EsmeRequest esmeRequest = new EsmeRequest(bind, EsmeClientData.BIND);
 		requestProcessor.process(esmeRequest);
-		System.out.printf("BindResponse %s%n",requestProcessor.getResponse().debugString());
+		Response response = requestProcessor.getResponse();
+		System.out.printf("BindResponse %s%n",Objects.nonNull(response)? response.debugString() : "No Bind Response");
 		
 		// Till this point, session will binded
 		if (session.getState() == Session.STATE_TRANSMITTER) {
 			requestProcessor.start();
 		}
+		canProcess = true;
+	}
 
+	public void process() {
+		if(!canProcess)
+			return;
 		SubmitSM sm = new SubmitSM();
-		esmeRequest = new EsmeRequest(sm, EsmeClientData.SUBMIT_SM);
+		EsmeRequest esmeRequest = new EsmeRequest(sm, EsmeClientData.SUBMIT_SM);
 		esmeQueueOperations.submit_SM(esmeRequest);
+	}
+	
+	public void cleanup() {
+		canProcess = false;
+		requestProcessor.drainAndStop();
 		
-		esmeRequest = new EsmeRequest(null, EsmeClientData.UNBIND); 
+		EsmeRequest esmeRequest = new EsmeRequest(null, EsmeClientData.UNBIND); 
 		requestProcessor.process(esmeRequest);
-		System.out.printf("UnBindResponse %s%n",requestProcessor.getResponse().debugString());
+		Response response = requestProcessor.getResponse();
+		System.out.printf("UnBindResponse %s%n", Objects.nonNull(response)? response.debugString() : "No Unbind Response");
 	}
 
 }

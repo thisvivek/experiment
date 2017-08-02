@@ -2,6 +2,7 @@ package opensmpp.experiment.multithreaded;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Objects;
 
 import org.smpp.Data;
 import org.smpp.Session;
@@ -11,6 +12,8 @@ import org.smpp.pdu.Address;
 import org.smpp.pdu.AddressRange;
 import org.smpp.pdu.BindRequest;
 import org.smpp.pdu.BindResponse;
+import org.smpp.pdu.EnquireLinkResp;
+import org.smpp.pdu.PDU;
 import org.smpp.pdu.PDUException;
 import org.smpp.pdu.Response;
 import org.smpp.pdu.SubmitSM;
@@ -19,6 +22,8 @@ import org.smpp.pdu.UnbindResp;
 import org.smpp.pdu.ValueNotSetException;
 import org.smpp.pdu.WrongDateFormatException;
 import org.smpp.pdu.WrongLengthOfStringException;
+
+import opensmpp.experiment.ClientException;
 
 public class EsmeSmscOperations {
 
@@ -55,7 +60,10 @@ public class EsmeSmscOperations {
 		} catch (WrongLengthOfStringException e) {
 		}
 		try {
-			response = session.bind(request, (event) -> System.out.printf("Handle Event: %s%n", event.getPDU().debugString()));
+			response = session.bind(request, (event) -> {
+				PDU pdu = event.getPDU();
+				System.out.printf("Handle Event: %s%n", Objects.nonNull(pdu) ? pdu.debugString() : "No Response");
+			});
 		} catch (ValueNotSetException e) {
 
 		} catch (TimeoutException e) {
@@ -70,7 +78,7 @@ public class EsmeSmscOperations {
 		return response;
 	}
 
-	public SubmitSMResp submit_SM(EsmeRequest request) {
+	public Response submit_SM(EsmeRequest request) {
 		SubmitSM sm = (SubmitSM)request.getRequest();
 		SubmitSMResp response = null;
 		
@@ -128,5 +136,23 @@ public class EsmeSmscOperations {
 		
 		}
 		return response;
+	}
+	
+	public Response enquireLink(EsmeRequest req) {
+		EnquireLinkResp enquireLinkResp = null;
+		try {
+			enquireLinkResp = session.enquireLink();
+		} catch (ValueNotSetException e) {
+			
+		} catch (TimeoutException e) {
+			
+		} catch (PDUException e) {
+			
+		} catch (WrongSessionStateException e) {
+			
+		} catch (IOException e) {
+			
+		}
+		return enquireLinkResp;
 	}
 }

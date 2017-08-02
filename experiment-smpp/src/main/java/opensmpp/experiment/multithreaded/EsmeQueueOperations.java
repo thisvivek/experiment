@@ -1,15 +1,16 @@
 package opensmpp.experiment.multithreaded;
 
+import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class EsmeQueueOperations {
-	
+
 	private final LinkedBlockingDeque<EsmeRequest> processionQueue;
-	
+
 	public EsmeQueueOperations(int maxQueueSize) {
 		this.processionQueue = new LinkedBlockingDeque<>(maxQueueSize);
 	}
-	
+
 	public void submit_SM(EsmeRequest sm) {
 		try {
 			processionQueue.putLast(sm);
@@ -17,12 +18,19 @@ public class EsmeQueueOperations {
 		}
 	}
 	
-	public EsmeRequest getFirstMessage() {
+	public void enquireLink(EsmeRequest enquireLink) {
 		try {
-			return processionQueue.takeFirst();
+			processionQueue.putFirst(enquireLink);
 		} catch (InterruptedException e) {
 		}
-		return null;
 	}
-	
+
+	public EsmeRequest getFirstMessage() throws InterruptedException {
+		return processionQueue.takeFirst();
+	}
+
+	public void drainTo(LinkedList<EsmeRequest> remainingObjects) {
+		processionQueue.drainTo(remainingObjects);
+	}
+
 }

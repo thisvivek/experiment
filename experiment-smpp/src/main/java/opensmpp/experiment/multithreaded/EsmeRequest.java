@@ -4,9 +4,12 @@ import org.smpp.pdu.Request;
 
 public class EsmeRequest {
 
-	private final Request request;
-	private final String requestName;
+	private Request request;
+	private String requestName;
 	private int count;
+	
+	public EsmeRequest() {
+	}
 
 	public EsmeRequest(Request request, String requestName) {
 		this.request = request;
